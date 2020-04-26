@@ -2,15 +2,16 @@
 
 import pygame
 pygame.init()
+from game import Game
+from window import Window
 
-# GAME VARIABLES
-WINDOW_TITLE = "PySnake by Nolan Freeman"
-WINDOW_WIDTH, WINDOW_HEIGHT = 1000, 1000
-window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+window = Window(pygame)
 
-pygame.display.set_caption(WINDOW_TITLE)
+ENTITY_SIZE = 20
 
 running = True
+
+game = Game(window)
 
 # Main Game Loop
 while running:
@@ -22,7 +23,9 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    pygame.display.update()
+    game.update()
+    game.draw()
 
+    pygame.display.update()
 # If loop is broken; quit game and close window
 pygame.quit()
