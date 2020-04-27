@@ -4,7 +4,7 @@ DEFAULT = 'default'
 
 font = 'Retro.ttf'
 
-themes = {DEFAULT: {'menu_color': (0, 0, 255), 'bg_color': (0, 255, 0), 'gameover_color': (0, 0, 0)}}
+themes = {DEFAULT: {'menu_color': (0, 0, 255), 'bg_color': (0, 255, 0), 'gameover_color': (0, 0, 0), 'menu_item_selected':(255,255,255), 'menu_item_unselected':(0,0,0)}}
 
 # states
 MENU = 'menu'
@@ -18,6 +18,8 @@ black = (0,0,0)
 items_array_template = [
     ['normal', 'team', 'battle', 'zone'], # mode
 ]
+
+from ui_text import UIText
 
 class Game:
     def __init__(self, window):
@@ -33,13 +35,17 @@ class Game:
         self.wrap_items_array =    ['on', 'off']
         self.powerup_items_array = ['on', 'off']
         self.obstacle_items_array = ['on', 'off']
-        self.food_items_array = [1, 2, 3]
-        self.map_items_array = [1, 2, 3, 4]
+        self.food_items_array = ['1', '2', '3']
+        self.map_items_array = ['1', '2', '3', '4']
 
         self.heading_items = [self.mode_items_array, self.speed_items_array, self.wrap_items_array, self.powerup_items_array, self.obstacle_items_array, self.food_items_array, self.map_items_array]
 
         self.selected_heading = 0
         self.selected_item = 0
+        self.prev_selected_heading = 1
+        self.prev_selected_item = 1
+
+        self.menu_headers, self.menu_items, self.menu_title = self.build_menu()
 
     # redraws any changes made in update
     def draw(self):
@@ -51,8 +57,6 @@ class Game:
             self.display_pause()
         if self.state == GAMEOVER:
             self.display_gameover()
-
-        print(self.selected_item)
 
     # updates logic like player location
     def update(self):
@@ -66,14 +70,20 @@ class Game:
             if self.state == MENU:
                 if event.type == self.window.pygame.KEYDOWN:
                     if event.key == self.window.pygame.K_UP:
+                        self.prev_selected_heading = self.selected_heading
                         self.selected_heading = self.selected_heading - 1 if self.selected_heading > 0 else len(self.headings)-1
                         self.selected_item = 0
+                        self.prev_selected_item = 1
                     elif event.key == self.window.pygame.K_DOWN:
+                        self.prev_selected_heading = self.selected_heading
                         self.selected_heading = self.selected_heading + 1 if self.selected_heading < len(self.headings)-1 else 0
                         self.selected_item = 0
+                        self.prev_selected_item = 1
                     if event.key == self.window.pygame.K_LEFT:
+                        self.prev_selected_item = self.selected_item
                         self.selected_item = self.selected_item - 1 if self.selected_item > 0 else len(self.heading_items[self.selected_heading])-1
                     elif event.key == self.window.pygame.K_RIGHT:
+                        self.prev_selected_item = self.selected_item
                         self.selected_item = self.selected_item + 1 if self.selected_item < len(self.heading_items[self.selected_heading])-1 else 0
                     if event.key == self.window.pygame.K_RETURN:
                         pass
@@ -120,65 +130,13 @@ class Game:
     def display_menu(self):
         self.window.fill(self.theme['menu_color'])
 
-        # Alignment variables
-        mode_alignment = {'y': 220, 'x_start': self.window.width/8, 'x_end': self.window.width/8*7}
+        for header in self.menu_headers:
+            header.change_color(self.theme['menu_item_unselected'])
+        for item in self.menu_items:
+            header.change_color(self.theme['menu_item_unselected'])
 
-        #title text
-        title = self.text_format("PySnake", font, 150, (0,0,0))
-
-        # Mode selection text
-        if self.selected_heading == 0:
-            mode_selector_title = self.text_format('Mode', font, 75, white)
-            if self.selected_item == 0:
-                normal_mode_selector = self.text_format('Normal', font, 50, white)
-            else:
-                normal_mode_selector = self.text_format('Normal', font, 50, black)
-            if self.selected_item == 1:
-                team_mode_selector = self.text_format('Team', font, 50, white)
-            else:
-                team_mode_selector = self.text_format('Team', font, 50, black)
-            if self.selected_item == 2:
-                battle_mode_selector = self.text_format('Battle', font, 50, white)
-            else:
-                battle_mode_selector = self.text_format('Battle', font, 50, black)
-            if self.selected_item == 3:
-                zone_mode_selector = self.text_format('Zone', font, 50, white)
-            else:
-                zone_mode_selector = self.text_format('Zone', font, 50, black)
-        if self.selected_heading == 1:
-            speed_selector_title = self.text_format(self.headings[1], font, 75, white)
-            if self.selected_item == 0:
-                speed_1_selector = self.text_format(self.heading_items[1][0], font, 50, white)
-            else:
-                speed_1_selector = self.text_format(self.heading_items[1][0], font, 50, black)
-
-        #title rect
-        title_rect = title.get_rect()
-
-        # Mode selection rect
-        mode_selector_title_rect = mode_selector_title.get_rect()
-        normal_mode_selector_rect = normal_mode_selector.get_rect()
-        team_mode_selector_rect = team_mode_selector.get_rect()
-        battle_mode_selector_rect = battle_mode_selector.get_rect()
-        zone_mode_selector_rect = zone_mode_selector.get_rect()
-
-        # Speed selection rect
-        speed_selector_title_rect = speed_selector_title.get_rect()
-        speed_1_selector_rect = speed_1_selector.get_rect()
-
-        #title blit
-        self.window.blit(title, (self.window.width/2 - title_rect[2]/2, 40))
-
-        # Mode selection blit
-        self.window.blit(mode_selector_title, (mode_alignment['x_start'], 220 - normal_mode_selector_rect.centery))
-        self.window.blit(normal_mode_selector, (self.window.width/8*3 - normal_mode_selector_rect.centerx, 225 + mode_selector_title_rect.centery - normal_mode_selector_rect.bottom))
-        self.window.blit(team_mode_selector, (self.window.width/8*4.5 - team_mode_selector_rect.centerx, 225 + mode_selector_title_rect.centery - normal_mode_selector_rect.bottom))
-        self.window.blit(battle_mode_selector, (self.window.width/8*5.75 - battle_mode_selector_rect.centerx, 225 + mode_selector_title_rect.centery - normal_mode_selector_rect.bottom))
-        self.window.blit(zone_mode_selector, (mode_alignment['x_end'] - zone_mode_selector_rect.centerx, 225 + mode_selector_title_rect.centery - normal_mode_selector_rect.bottom))
-
-        #Speed selection blit
-        self.window.blit(speed_selector_title, (500, 500))
-        self.window.blit(speed_1_selector, (600, 600))
+        self.menu_headers[self.selected_heading].change_color(self.theme['menu_item_selected'])
+        self.menu_items[self.selected_heading][self.selected_item].change_color(self.theme['menu_item_selected'])
 
 
     def display_pause(self):
@@ -195,3 +153,20 @@ class Game:
         newText=newFont.render(message, 0, textColor)
 
         return newText
+
+    def build_menu(self):
+        menu_headers = []
+        menu_header_items = []
+
+        title = UIText('PySnake', font, 150, black, 'centerx', 40, self.window)
+
+        for header_i, header in enumerate(self.heading_items):
+            new_header = UIText(self.headings[header_i], font, 75, black, self.window.width/8, 220 + (75 * header_i) + 10, self.window)
+            menu_headers.append(new_header)
+            menu_items = []
+            for item_i, item in enumerate(header):
+                new_item = UIText(self.heading_items[header_i][item_i], font, 50, black, self.window.width/8*5, 220 + (75 * header_i) + 10, self.window)
+                menu_items.append(new_item)
+
+            menu_header_items.append(menu_items)
+        return (menu_headers, menu_header_items, title)
