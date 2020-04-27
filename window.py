@@ -15,3 +15,9 @@ class Window:
     def set_title(self, title):
         self.title = title
         self.pygame.display.set_caption(self.title)
+
+    def fill(self, color):
+        self.window.fill(color)
+
+    def blit(self, title, coordinates):
+        return self.window.blit(title, coordinates)

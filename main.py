@@ -18,11 +18,6 @@ while running:
     # in milliseconds TODO replace with clock
     pygame.time.delay(100)
 
-    for event in pygame.event_get():
-        # Break the game loop if QUIT event arises (eg. hitting 'x' on window)
-        if event.type == pygame.QUIT:
-            running = False
-
     game.update()
     game.draw()
 
