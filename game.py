@@ -41,9 +41,10 @@ class Game:
         self.heading_items = [self.mode_items_array, self.speed_items_array, self.wrap_items_array, self.powerup_items_array, self.obstacle_items_array, self.food_items_array, self.map_items_array]
 
         self.selected_heading = 0
-        self.selected_item = 0
+        self.selected_items = [0,0,0,0,0,0,0]
+
         self.prev_selected_heading = 1
-        self.prev_selected_item = 1
+        self.selected_item = 1
 
         self.menu_headers, self.menu_items, self.menu_title = self.build_menu()
 
@@ -70,23 +71,19 @@ class Game:
             if self.state == MENU:
                 if event.type == self.window.pygame.KEYDOWN:
                     if event.key == self.window.pygame.K_UP:
-                        self.prev_selected_heading = self.selected_heading
                         self.selected_heading = self.selected_heading - 1 if self.selected_heading > 0 else len(self.headings)-1
-                        self.selected_item = 0
-                        self.prev_selected_item = 1
+                        self.selected_item = self.selected_items[self.selected_heading]
                     elif event.key == self.window.pygame.K_DOWN:
-                        self.prev_selected_heading = self.selected_heading
                         self.selected_heading = self.selected_heading + 1 if self.selected_heading < len(self.headings)-1 else 0
-                        self.selected_item = 0
-                        self.prev_selected_item = 1
+                        self.selected_item = self.selected_items[self.selected_heading]
                     if event.key == self.window.pygame.K_LEFT:
-                        self.prev_selected_item = self.selected_item
                         self.selected_item = self.selected_item - 1 if self.selected_item > 0 else len(self.heading_items[self.selected_heading])-1
+                        self.selected_items[self.selected_heading] = self.selected_item
                     elif event.key == self.window.pygame.K_RIGHT:
-                        self.prev_selected_item = self.selected_item
                         self.selected_item = self.selected_item + 1 if self.selected_item < len(self.heading_items[self.selected_heading])-1 else 0
-                    if event.key == self.window.pygame.K_RETURN:
-                        pass
+                        self.selected_items[self.selected_heading] = self.selected_item
+                    if event.key == self.window.pygame.K_SPACE:
+                        self.state = PLAY
             if self.state == PLAY:
                 if event.type == self.window.pygame.KEYDOWN:
                     if event.key == self.window.pygame.K_UP:
@@ -130,10 +127,9 @@ class Game:
     def display_menu(self):
         self.window.fill(self.theme['menu_color'])
 
-        for header in self.menu_headers:
+        for i, header in enumerate(self.menu_headers):
             header.change_color(self.theme['menu_item_unselected'])
-        for item in self.menu_items:
-            header.change_color(self.theme['menu_item_unselected'])
+            self.menu_items[i][self.selected_items[i]].change_color(self.theme['menu_item_unselected'])
 
         self.menu_headers[self.selected_heading].change_color(self.theme['menu_item_selected'])
         self.menu_items[self.selected_heading][self.selected_item].change_color(self.theme['menu_item_selected'])
