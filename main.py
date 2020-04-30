@@ -61,8 +61,6 @@ class Snake:
 
     def move_body(self):
         for i in range(len(self.body), 0, -1):
-            print(i)
-            print(len(self.body), 'len')
             if i == 1:
                 self.body[i-1].posx = self.head.posx
                 self.body[i-1].posy = self.head.posy
@@ -77,20 +75,45 @@ class Snake:
     def distance(self, block):
         return self.head.distance(block)
 
+    def body_collision(self):
+        for block in self.body:
+            print(self.head.distance(block))
+            if self.head.distance(block) < BLOCK_SIZE:
+                 return True
+            else:
+                return False
+        return False
+
 class Food(Block):
     def __init__(self, pos, color, canvasdim):
         super().__init__(pos, color, canvasdim)
 
 class TextBox:
-    def __init__(self, text, font, size, color, pos):
-        self.text = format_text(text, font, size, color)
+    def __init__(self, text, font, size, color, pos, window):
+        self.text = text
+        self.font = font
+        self.size = size
+        self.color = color
         self.posx, self.posy = pos
+        self.window = window
+
+        self.styled = pygame.font.Font(self.font, self.size)
+        self.rendered = self.styled.render(self.text, 0, self.color)
+        self.rect = self.rendered.get_rect()
+
+        if self.posx == 'center':
+            self.posx = self.window.get_width()/2 - self.rect[2]/2
+        elif self.posx == 'margin-left':
+            self.posx = 50
+        elif self.posx == 'margin-right-center':
+            self.posx = self.window.get_width() - 50 - self.rect.width
 
     def draw(self):
-        pass
+        self.blit = self.window.blit(self.rendered, (self.posx, self.posy))
 
-    def update(self):
-        pass
+    def update(self, color):
+        self.color = color
+        self.rendered = self.styled.render(self.text, 0, self.color)
 
     def change_color(self):
         pass
@@ -109,12 +132,17 @@ class Game:
         self.theme = THEMES['default']
         self.state = 'play'
 
+
         self.num_foods = 1
 
         self.players = []
         self.items = []
         self.obstacles = []
-        self.play()
+
+        self.menu_headers = []
+        self.menu_items = []
+
+        self.menu()
 
     def main(self):
         while self.running:
@@ -128,7 +156,14 @@ class Game:
         self.window.fill(self.theme[self.state + ' bg'])
 
         if self.state == 'menu':
-            pass
+            for header in self.menu_headers:
+                if self.headings[self.selected_header] == header.text:
+                    header.update(self.theme['menu item selected'])
+                else:
+                    header.update(self.theme['menu title color'])
+                header.draw()
+            for i, item in enumerate(self.menu_items):
+                item[self.selected_items[i]].draw()
         elif self.state == 'play':
             # draw HUD
             pygame.draw.rect(self.window, self.theme['hud bg color'], (0, 0, self.width, self.canvasdim[1]))
@@ -150,22 +185,24 @@ class Game:
         for key in keys:
             if keys[pygame.K_LEFT]:
                 if self.state == 'menu':
-                    pass
+                    self.selected_items[self.selected_header] = self.selected_items[self.selected_header] + 1 if self.selected_items[self.selected_header] < len(self.menu_items[self.selected_header])-1 else 0
+                    print(self.selected_items[self.selected_header])
                 if self.state == 'play':
                     self.players[0].move((-1,0))
             if keys[pygame.K_RIGHT]:
                 if self.state == 'menu':
-                    pass
+                    self.selected_items[self.selected_header] = self.selected_items[self.selected_header] - 1 if self.selected_items[self.selected_header] > 0 else len(self.menu_items[self.selected_header])-1
+                    print(self.selected_items[self.selected_header])
                 if self.state == 'play':
                     self.players[0].move((1,0))
             if keys[pygame.K_UP]:
                 if self.state == 'menu':
-                    pass
+                    self.selected_header = self.selected_header - 1 if self.selected_header > 0 else len(self.headings)-1
                 if self.state == 'play':
                     self.players[0].move((0,-1))
             if keys[pygame.K_DOWN]:
                 if self.state == 'menu':
-                    pass
+                    self.selected_header = self.selected_header + 1 if self.selected_header < len(self.headings)-1 else 0
                 if self.state == 'play':
                     self.players[0].move((0,1))
             if keys[pygame.K_SPACE]:
@@ -180,7 +217,8 @@ class Game:
 
         for player in self.players:
             if player.head.posx < self.canvasdim[0] or player.head.posx > self.canvasdim[2] or player.head.posy < self.canvasdim[1] or player.head.posy > self.canvasdim[3]:
-                self.state = 'gameover'
+                self.gameover()
+            if player.body_collision():
                 self.gameover()
             for item in self.items:
                 if player.distance(item) < BLOCK_SIZE:
@@ -193,6 +231,24 @@ class Game:
 
     def menu(self):
         self.state = 'menu'
+        self.selected_items = [0,1,0,0,0,1,0]
+        self.selected_header = 0
+
+        title = TextBox(MENU_TEXT['title'], self.theme['font'], 150, self.theme['menu title color'], ('center', 10), self.window)
+        self.headings = ['Mode', 'Speed', 'Wraparound', 'Power Ups', 'Obstacles', 'Num Food', 'Map']
+        ypos = 10+150+10
+        for heading_i, heading in enumerate(self.headings):
+            heading_box = TextBox(heading, self.theme['font'], 75, self.theme['menu title color'], ('margin-left', ypos), self.window)
+            self.menu_headers.append(heading_box)
+            array_of_menu_items = []
+            for item in MENU_TEXT[heading]:
+                item_box = TextBox(item, self.theme['font'], 75, self.theme['menu title color'], ('margin-right-center', ypos), self.window)
+                array_of_menu_items.append(item_box)
+
+            self.menu_items.append(array_of_menu_items)
+            ypos += 75
+
+        self.menu_headers.append(title)
 
     def play(self):
         self.players = []
@@ -217,9 +273,12 @@ class Game:
 # Global Constants
 BLOCK_SIZE = 20
 HUD_HEIGHT = 100
-THEMES = {'default': {'font': 'Retro.ttf', 'player color': (0,0,0), 'food color': (255,0,0), 'play bg': (0,0,255), 'gameover bg': (0,0,0), 'hud bg color': (0,0,150)}}
+THEMES = {'default': {'font': 'Retro.ttf', 'player color': (0,0,0), 'food color': (255,0,0), 'menu title color': (0,0,0), 'menu bg': (100,100,100), 'play bg': (0,0,255), 'gameover bg': (0,0,0), 'hud bg color': (0,0,150), 'menu item selected': (255,255,255)}}
 STATES = ['menu', 'play', 'paused', 'gameover']
 
+MENU_TEXT = {'title': 'PySnake', 'Mode': ['Normal', 'Team', 'Battle', 'Zone'], 'Speed': ['0.75x', '1x', '1.5x', '2x'], 'Wraparound': ['off', 'on'], 'Power Ups': ['off', 'on'], 'Obstacles': ['off', 'on'], 'Num Food': ['1', '2', '3'], 'Map': ['1', '2', '3', '4']}
+
+pygame.init()
 game = Game()
 game.main()
 
