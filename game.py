@@ -4,7 +4,7 @@ DEFAULT = 'default'
 
 font = 'Retro.ttf'
 
-themes = {DEFAULT: {'menu_color': (0, 0, 255), 'bg_color': (0, 255, 0), 'gameover_color': (0, 0, 0), 'menu_item_selected':(255,255,255), 'menu_item_unselected':(0,0,0)}}
+themes = {DEFAULT: {'player_color': (0,0,0),'menu_color': (0, 0, 255), 'bg_color': (0, 255, 0), 'gameover_color': (0, 0, 0), 'menu_item_selected':(255,255,255), 'menu_item_unselected':(0,0,0)}}
 
 # states
 MENU = 'menu'
@@ -15,33 +15,39 @@ GAMEOVER = 'gameover'
 white = (255,255,255)
 black = (0,0,0)
 
-items_array_template = [
-    ['normal', 'team', 'battle', 'zone'], # mode
-]
+maps = [(500, 500), (1000, 1000), (1000, 500), (1500, 500)]
 
 from ui_text import UIText
+from player import Player
 
 class Game:
     def __init__(self, window):
         self.theme = themes[DEFAULT]
         self.window = window
-        self.canvas_size = (800, 800)
+        self.canvas_size = (1000, 1000)
         self.state = MENU
 
         self.headings = ['Mode', 'Speed', 'Wraparound', 'PowerUps', 'Obstacles', '# Food', 'Map']
 
+        self.entity_size = 25
+
         self.mode_items_array = ['normal', 'team', 'battle', 'zone']
         self.speed_items_array = ['0.75x', '1x', '1.5x', '2x']
-        self.wrap_items_array =    ['on', 'off']
-        self.powerup_items_array = ['on', 'off']
-        self.obstacle_items_array = ['on', 'off']
+        self.wrap_items_array =    ['off', 'on']
+        self.powerup_items_array = ['off', 'on']
+        self.obstacle_items_array = ['off', 'on']
         self.food_items_array = ['1', '2', '3']
         self.map_items_array = ['1', '2', '3', '4']
+
+        self.top_boundry = 0
+        self.bottom_boundry = self.canvas_size[0]
+        self.left_boundry = 0
+        self.right_boundry = self.canvas_size[1]
 
         self.heading_items = [self.mode_items_array, self.speed_items_array, self.wrap_items_array, self.powerup_items_array, self.obstacle_items_array, self.food_items_array, self.map_items_array]
 
         self.selected_heading = 0
-        self.selected_items = [0,0,0,0,0,0,0]
+        self.selected_items = [0,1,0,0,0,0,1]
 
         self.prev_selected_heading = 1
         self.selected_item = 1
@@ -68,58 +74,60 @@ class Game:
                 self.window.pygame.quit()
                 break
 
-            if self.state == MENU:
-                if event.type == self.window.pygame.KEYDOWN:
-                    if event.key == self.window.pygame.K_UP:
-                        self.selected_heading = self.selected_heading - 1 if self.selected_heading > 0 else len(self.headings)-1
-                        self.selected_item = self.selected_items[self.selected_heading]
-                    elif event.key == self.window.pygame.K_DOWN:
-                        self.selected_heading = self.selected_heading + 1 if self.selected_heading < len(self.headings)-1 else 0
-                        self.selected_item = self.selected_items[self.selected_heading]
-                    if event.key == self.window.pygame.K_LEFT:
-                        self.selected_item = self.selected_item - 1 if self.selected_item > 0 else len(self.heading_items[self.selected_heading])-1
-                        self.selected_items[self.selected_heading] = self.selected_item
-                    elif event.key == self.window.pygame.K_RIGHT:
-                        self.selected_item = self.selected_item + 1 if self.selected_item < len(self.heading_items[self.selected_heading])-1 else 0
-                        self.selected_items[self.selected_heading] = self.selected_item
-                    if event.key == self.window.pygame.K_SPACE:
-                        self.state = PLAY
-            if self.state == PLAY:
-                if event.type == self.window.pygame.KEYDOWN:
-                    if event.key == self.window.pygame.K_UP:
-                        pass
-                    elif event.key == self.window.pygame.K_DOWN:
-                        pass
-                    if event.key == self.window.pygame.K_LEFT:
-                        pass
-                    elif event.key == self.window.pygame.K_RIGHT:
-                        pass
-                    if event.key == self.window.pygame.K_RETURN:
-                        pass
-            if self.state == PAUSED:
-                if event.type == self.window.pygame.KEYDOWN:
-                    if event.key == self.window.pygame.K_UP:
-                        pass
-                    elif event.key == self.window.pygame.K_DOWN:
-                        pass
-                    if event.key == self.window.pygame.K_LEFT:
-                        pass
-                    elif event.key == self.window.pygame.K_RIGHT:
-                        pass
-                    if event.key == self.window.pygame.K_RETURN:
-                        pass
-            if self.state == GAMEOVER:
-                if event.type == self.window.pygame.KEYDOWN:
-                    if event.key == self.window.pygame.K_UP:
-                        pass
-                    elif event.key == self.window.pygame.K_DOWN:
-                        pass
-                    if event.key == self.window.pygame.K_LEFT:
-                        pass
-                    elif event.key == self.window.pygame.K_RIGHT:
-                        pass
-                    if event.key == self.window.pygame.K_RETURN:
-                        pass
+        self.window.pygame.event.pump()
+        keys = self.window.pygame.key.get_pressed()
+
+        if self.state == MENU:
+            if keys['K_UP']:
+                self.selected_heading = self.selected_heading - 1 if self.selected_heading > 0 else len(self.headings)-1
+                self.selected_item = self.selected_items[self.selected_heading]
+            if keys[K_DOWN]:
+                self.selected_heading = self.selected_heading + 1 if self.selected_heading < len(self.headings)-1 else 0
+                self.selected_item = self.selected_items[self.selected_heading]
+            if keys[K_LEFT]:
+                self.selected_item = self.selected_item - 1 if self.selected_item > 0 else len(self.heading_items[self.selected_heading])-1
+                self.selected_items[self.selected_heading] = self.selected_item
+            if keys[K_RIGHT]:
+                self.selected_item = self.selected_item + 1 if self.selected_item < len(self.heading_items[self.selected_heading])-1 else 0
+                self.selected_items[self.selected_heading] = self.selected_item
+            if keys[K_SPACE]:
+                self.build_play()
+        if self.state == PLAY:
+            if keys[K_UP]:
+                self.players_list[0].move_up()
+            if keys[K_DOWN]:
+                self.players_list[0].move_down()
+            if keys[K_LEFT]:
+                self.players_list[0].move_left()
+            if keys[K_RIGHT]:
+                self.players_list[0].move_right()
+            if keys[K_SPACE]:
+                pass
+        for player in self.players_list:
+            player.check_collisions()
+            player.move()
+        if self.state == PAUSED:
+            if keys[K_UP]:
+                pass
+            if keys[K_DOWN]:
+                pass
+            if keys[K_LEFT]:
+                pass
+            if keys[K_RIGHT]:
+                pass
+            if keys[K_SPACE]:
+                pass
+        if self.state == GAMEOVER:
+            if keys[K_UP]:
+                pass
+            if keys[K_DOWN]:
+                pass
+            if keys[K_LEFT]:
+                pass
+            if keys[K_RIGHT]:
+                pass
+            if keys[K_SPACE]:
+                pass
 
     def set_canvas_size(self, size):
         self.canvas_size = size
@@ -140,15 +148,71 @@ class Game:
 
     def display_play(self):
         self.window.fill(self.theme['bg_color'])
+        for player in self.players_list:
+            player.draw()
 
     def display_gameover(self):
-        self.window.fill(self.theme['gamover_color'])
+        self.window.fill(self.theme['gameover_color'])
 
     def text_format(self, message, textFont, textSize, textColor):
         newFont=self.window.pygame.font.Font(textFont, textSize)
         newText=newFont.render(message, 0, textColor)
 
         return newText
+
+        self.headings = ['Mode', 'Speed', 'Wraparound', 'PowerUps', 'Obstacles', '# Food', 'Map']
+    def build_play(self):
+        self.players_list= []
+        self.items_list = []
+
+        self.num_players = 1
+
+        if self.selected_items[0] == 0:
+            self.num_players = 1
+        elif self.selected_items[0] == 1:
+            pass
+        elif self.selected_items[0] == 2:
+            pass
+        elif self.selected_items[0] == 3:
+            pass
+
+        self.player_speed = 0
+
+        if self.selected_items[1] == 0:
+            self.player_speed = 0.75 * self.entity_size
+        elif self.selected_items[1] == 1:
+            self.player_speed = 1 * self.entity_size
+        elif self.selected_items[1] == 2:
+            self.player_speed = 1.5 * self.entity_size
+        elif self.selected_items[1] == 3:
+            self.player_speed = 2 * self.entity_size
+
+        if self.selected_items[2]:
+            self.wraparound_on = True
+        else:
+            self.wraparound_on = False
+
+        if self.selected_items[3]:
+            self.powerups_on = True
+        else:
+            self.powerups_on = False
+
+        if self.selected_items[4]:
+            self.obstacles_on = True
+        else:
+            self.obstacles_on = False
+
+        self.num_food = self.selected_items[5] + 1
+
+        self.map = maps[self.selected_items[6]]
+
+        self.set_canvas_size(self.map)
+
+        for player in range(self.num_players):
+            new_player = Player(self, self.player_speed)
+            self.players_list.append(new_player)
+
+        self.state = PLAY
 
     def build_menu(self):
         menu_headers = []
