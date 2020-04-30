@@ -120,7 +120,8 @@ class TextBox:
 
 class Game:
     def __init__(self):
-        self.rows, self.cols = 30, 30
+        self.selected_map = MAPS[0]
+        self.rows, self.cols = self.selected_map
         self.width, self.height = self.cols * BLOCK_SIZE, self.rows * BLOCK_SIZE + HUD_HEIGHT
         self.window = pygame.display.set_mode((self.width, self.height))
 
@@ -134,6 +135,7 @@ class Game:
 
 
         self.num_foods = 1
+        self.speed = 1
 
         self.players = []
         self.items = []
@@ -146,7 +148,7 @@ class Game:
 
     def main(self):
         while self.running:
-            pygame.time.delay(100)
+            pygame.time.delay(math.floor(60 / self.speed))
             self.clock.tick(10)
 
             self.update()
@@ -207,7 +209,25 @@ class Game:
                     self.players[0].move((0,1))
             if keys[pygame.K_SPACE]:
                 if self.state == 'menu':
-                    pass
+                    self.mode = self.selected_items[0]
+                    if self.selected_items[1] == 0:
+                        self.speed = 0.5
+                    if self.selected_items[1] == 1:
+                        self.speed = 1
+                    if self.selected_items[1] == 2:
+                        self.speed = 1.5
+                    if self.selected_items[1] == 3:
+                        self.speed = 2
+                    self.wraparound_on = self.selected_items[2]
+                    self.powerups_on = self.selected_items[3]
+                    self.obstacles_on = self.selected_items[4]
+                    self.num_foods = self.selected_items[5] + 1
+                    self.selected_map = MAPS[self.selected_items[6]]
+                    self.rows, self.cols = self.selected_map
+                    self.width, self.height = self.cols * BLOCK_SIZE, self.rows * BLOCK_SIZE + HUD_HEIGHT
+                    self.window = pygame.display.set_mode((self.width, self.height))
+                    self.canvasdim = (0, HUD_HEIGHT, self.width, self.height)
+                    self.play()
                 if self.state == 'play':
                     self.pause()
                 if self.state == 'pause':
@@ -276,7 +296,8 @@ HUD_HEIGHT = 100
 THEMES = {'default': {'font': 'Retro.ttf', 'player color': (0,0,0), 'food color': (255,0,0), 'menu title color': (0,0,0), 'menu bg': (100,100,100), 'play bg': (0,0,255), 'gameover bg': (0,0,0), 'hud bg color': (0,0,150), 'menu item selected': (255,255,255)}}
 STATES = ['menu', 'play', 'paused', 'gameover']
 
-MENU_TEXT = {'title': 'PySnake', 'Mode': ['Normal', 'Team', 'Battle', 'Zone'], 'Speed': ['0.75x', '1x', '1.5x', '2x'], 'Wraparound': ['off', 'on'], 'Power Ups': ['off', 'on'], 'Obstacles': ['off', 'on'], 'Num Food': ['1', '2', '3'], 'Map': ['1', '2', '3', '4']}
+MENU_TEXT = {'title': 'PySnake', 'Mode': ['Normal', 'Team', 'Battle', 'Zone'], 'Speed': ['0.5x', '1x', '1.5x', '2x'], 'Wraparound': ['off', 'on'], 'Power Ups': ['off', 'on'], 'Obstacles': ['off', 'on'], 'Num Food': ['1', '2', '3'], 'Map': ['1', '2', '3', '4']}
+MAPS = [(30, 30), (50, 50), (50, 25), (80, 80)]
 
 pygame.init()
 game = Game()
