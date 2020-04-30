@@ -53,6 +53,10 @@ class Snake:
     def add_block(self):
         pass
 
+class Food(Block):
+    def __init__(self, pos, color, canvasdim):
+        super().__init__(pos, color, canvasdim)
+
 class TextBox:
     def __init__(self, text, font, size, color, pos):
         self.text = format_text(text, font, size, color)
@@ -81,6 +85,8 @@ class Game:
         self.theme = THEMES['default']
         self.state = 'play'
 
+        self.num_foods = 1
+
         self.players = []
         self.items = []
         self.obstacles = []
@@ -102,6 +108,8 @@ class Game:
         elif self.state == 'play':
             for player in self.players:
                 player.draw(self.window)
+            for item in self.items:
+                item.draw(self.window)
         elif self.state == 'pause':
             pass
         elif self.state == 'gameover':
@@ -155,9 +163,13 @@ class Game:
 
     def play(self):
         self.players = []
+        self.items = []
         self.state = 'play'
         player1 = Snake((), self.theme['player color'], self.canvasdim)
         self.players.append(player1)
+        for i in range(self.num_foods):
+            food = Food((), self.theme['food color'], self.canvasdim)
+            self.items.append(food)
 
     def pause(self):
         self.state = 'pause'
@@ -172,7 +184,7 @@ class Game:
 # Global Constants
 BLOCK_SIZE = 20
 HUD_HEIGHT = 100
-THEMES = {'default': {'font': 'Retro.ttf', 'player color': (0,0,0), 'play bg': (0,0,255), 'gameover bg': (0,0,0)}}
+THEMES = {'default': {'font': 'Retro.ttf', 'player color': (0,0,0), 'food color': (255,0,0), 'play bg': (0,0,255), 'gameover bg': (0,0,0)}}
 STATES = ['menu', 'play', 'paused', 'gameover']
 
 game = Game()
