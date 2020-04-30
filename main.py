@@ -35,14 +35,15 @@ class Block:
         self.center = (self.posx+self.size/2, self.posy+self.size/2)
         a = abs(self.center[0] - bcenter[0])
         b = abs(self.center[1] - bcenter[1])
-        print(a, b)
-        print(math.sqrt(a**2 + b**2))
         return math.sqrt(a**2 + b**2)
 
 class Snake:
     def __init__(self, pos, color, canvasdim):
         self.head = Block(pos, color, canvasdim)
         self.body = []
+        self.pos = pos
+        self.color = color
+        self.canvasdim = canvasdim
 
     def draw(self, window):
         self.head.draw(window)
@@ -50,6 +51,7 @@ class Snake:
             block.draw(window)
 
     def update(self):
+        self.move_body()
         self.head.update()
         for block in self.body:
             block.update()
@@ -58,10 +60,19 @@ class Snake:
         self.head.move(xydir)
 
     def move_body(self):
-        pass
+        for i in range(len(self.body), 0, -1):
+            print(i)
+            print(len(self.body), 'len')
+            if i == 1:
+                self.body[i-1].posx = self.head.posx
+                self.body[i-1].posy = self.head.posy
+            else:
+                self.body[i-1].posx = self.body[i-2].posx
+                self.body[i-1].posy = self.body[i-2].posy
 
     def add_block(self):
-        pass
+        new_block = Block((self.head.posx, self.head.posy), self.color, self.canvasdim)
+        self.body.append(new_block)
 
     def distance(self, block):
         return self.head.distance(block)
@@ -122,10 +133,10 @@ class Game:
             # draw HUD
             pygame.draw.rect(self.window, self.theme['hud bg color'], (0, 0, self.width, self.canvasdim[1]))
 
-            for player in self.players:
-                player.draw(self.window)
             for item in self.items:
                 item.draw(self.window)
+            for player in self.players:
+                player.draw(self.window)
         elif self.state == 'pause':
             pass
         elif self.state == 'gameover':
