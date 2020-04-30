@@ -24,8 +24,8 @@ class Block:
         pass
 
     def get_random_pos(self, canvasdim):
-        x = random.randint(canvasdim[0], canvasdim[2])
-        y = random.randint(canvasdim[1], canvasdim[3])
+        x = random.randint(canvasdim[0], canvasdim[2]) // self.size * self.size
+        y = random.randint(canvasdim[1], canvasdim[3]) // self.size * self.size
         return x, y
 
 class Snake:
