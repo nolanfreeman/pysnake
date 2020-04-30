@@ -1,13 +1,15 @@
 
 import pygame
 import random
+import math
 
 class Block:
     def __init__(self, pos, color, canvasdim):
         self.size = BLOCK_SIZE
         self.speedx, self.speedy = 0,0
         self.color = color
-        self.posx, self.posy = self.get_random_pos(canvasdim) if pos == () else pos
+        self.canvasdim = canvasdim
+        self.posx, self.posy = self.get_random_pos(self.canvasdim) if pos == () else pos
 
     def draw(self, window):
         pygame.draw.rect(window, self.color, (self.posx, self.posy, self.size, self.size))
@@ -21,12 +23,21 @@ class Block:
         self.speedy = xydir[1] * self.size
 
     def transport(self, coordinates):
-        pass
+        self.posx, self.posy = self.get_random_pos(self.canvasdim) if coordinates == () else coordinates
 
     def get_random_pos(self, canvasdim):
         x = random.randint(canvasdim[0], canvasdim[2]) // self.size * self.size
         y = random.randint(canvasdim[1], canvasdim[3]) // self.size * self.size
         return x, y
+
+    def distance(self, block):
+        bcenter = (block.posx+block.size/2, block.posy+block.size/2)
+        self.center = (self.posx+self.size/2, self.posy+self.size/2)
+        a = abs(self.center[0] - bcenter[0])
+        b = abs(self.center[1] - bcenter[1])
+        print(a, b)
+        print(math.sqrt(a**2 + b**2))
+        return math.sqrt(a**2 + b**2)
 
 class Snake:
     def __init__(self, pos, color, canvasdim):
@@ -37,7 +48,6 @@ class Snake:
         self.head.draw(window)
         for block in self.body:
             block.draw(window)
-        print(self.head.posx, self.head.posy)
 
     def update(self):
         self.head.update()
@@ -52,6 +62,9 @@ class Snake:
 
     def add_block(self):
         pass
+
+    def distance(self, block):
+        return self.head.distance(block)
 
 class Food(Block):
     def __init__(self, pos, color, canvasdim):
@@ -106,7 +119,9 @@ class Game:
         if self.state == 'menu':
             pass
         elif self.state == 'play':
+            # draw HUD
             pygame.draw.rect(self.window, self.theme['hud bg color'], (0, 0, self.width, self.canvasdim[1]))
+
             for player in self.players:
                 player.draw(self.window)
             for item in self.items:
@@ -156,6 +171,12 @@ class Game:
             if player.head.posx < self.canvasdim[0] or player.head.posx > self.canvasdim[2] or player.head.posy < self.canvasdim[1] or player.head.posy > self.canvasdim[3]:
                 self.state = 'gameover'
                 self.gameover()
+            for item in self.items:
+                if player.distance(item) < BLOCK_SIZE:
+                    item.transport(())
+                    if isinstance(item, Food):
+                        player.add_block()
+
             player.update()
         pygame.display.update()
 
