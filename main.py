@@ -106,6 +106,7 @@ class Game:
         if self.state == 'menu':
             pass
         elif self.state == 'play':
+            pygame.draw.rect(self.window, self.theme['hud bg color'], (0, 0, self.width, self.canvasdim[1]))
             for player in self.players:
                 player.draw(self.window)
             for item in self.items:
@@ -184,7 +185,7 @@ class Game:
 # Global Constants
 BLOCK_SIZE = 20
 HUD_HEIGHT = 100
-THEMES = {'default': {'font': 'Retro.ttf', 'player color': (0,0,0), 'food color': (255,0,0), 'play bg': (0,0,255), 'gameover bg': (0,0,0)}}
+THEMES = {'default': {'font': 'Retro.ttf', 'player color': (0,0,0), 'food color': (255,0,0), 'play bg': (0,0,255), 'gameover bg': (0,0,0), 'hud bg color': (0,0,150)}}
 STATES = ['menu', 'play', 'paused', 'gameover']
 
 game = Game()
