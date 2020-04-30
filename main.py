@@ -95,9 +95,17 @@ class Game:
             self.draw()
 
     def draw(self):
-        self.window.fill(self.theme['play bg'])
-        for player in self.players:
-            player.draw(self.window)
+        self.window.fill(self.theme[self.state + ' bg'])
+
+        if self.state == 'menu':
+            pass
+        elif self.state == 'play':
+            for player in self.players:
+                player.draw(self.window)
+        elif self.state == 'pause':
+            pass
+        elif self.state == 'gameover':
+            pass
 
     def update(self):
         for event in pygame.event.get():
@@ -125,28 +133,46 @@ class Game:
                     pass
                 if self.state == 'play':
                     self.players[0].move((0,1))
+            if keys[pygame.K_SPACE]:
+                if self.state == 'menu':
+                    pass
+                if self.state == 'play':
+                    self.pause()
+                if self.state == 'pause':
+                    self.resume()
+                if self.state == 'gameover':
+                    self.play()
 
         for player in self.players:
+            if player.head.posx < self.canvasdim[0] or player.head.posx > self.canvasdim[2] or player.head.posy < self.canvasdim[1] or player.head.posy > self.canvasdim[3]:
+                self.state = 'gameover'
+                self.gameover()
             player.update()
         pygame.display.update()
 
     def menu(self):
-        pass
+        self.state = 'menu'
 
     def play(self):
+        self.players = []
+        self.state = 'play'
         player1 = Snake((), self.theme['player color'], self.canvasdim)
         self.players.append(player1)
 
     def pause(self):
-        pass
+        self.state = 'pause'
+
+    def resume(self):
+        self.state = 'play'
 
     def gameover(self):
-        pass
+        self.state = 'gameover'
+        self.window.fill(self.theme['gameover bg'])
 
 # Global Constants
 BLOCK_SIZE = 20
 HUD_HEIGHT = 100
-THEMES = {'default': {'font': 'Retro.ttf', 'player color': (0,0,0), 'play bg': (0,0,255)}}
+THEMES = {'default': {'font': 'Retro.ttf', 'player color': (0,0,0), 'play bg': (0,0,255), 'gameover bg': (0,0,0)}}
 STATES = ['menu', 'play', 'paused', 'gameover']
 
 game = Game()
