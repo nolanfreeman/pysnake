@@ -77,7 +77,6 @@ class Snake:
 
     def body_collision(self):
         for block in self.body:
-            print(self.head.distance(block))
             if self.head.distance(block) < BLOCK_SIZE:
                  return True
             else:
@@ -111,12 +110,14 @@ class TextBox:
     def draw(self):
         self.blit = self.window.blit(self.rendered, (self.posx, self.posy))
 
-    def update(self, color):
-        self.color = color
-        self.rendered = self.styled.render(self.text, 0, self.color)
-
-    def change_color(self):
+    def update(self):
         pass
+
+    def change_color(self, color):
+        self.rendered = self.styled.render(self.text, 0, color)
+
+    def change_text(self, text):
+        self.rendered = self.styled.render(text, 0, self.color)
 
 class Game:
     def __init__(self):
@@ -132,7 +133,8 @@ class Game:
 
         self.theme = THEMES['default']
         self.state = 'play'
-
+        self.score = 0
+        self.highscore = 0
 
         self.num_foods = 1
         self.speed = 1
@@ -160,15 +162,19 @@ class Game:
         if self.state == 'menu':
             for header in self.menu_headers:
                 if self.headings[self.selected_header] == header.text:
-                    header.update(self.theme['menu item selected'])
+                    header.change_color(self.theme['menu item selected'])
                 else:
-                    header.update(self.theme['menu title color'])
+                    header.change_color(self.theme['menu title color'])
                 header.draw()
             for i, item in enumerate(self.menu_items):
                 item[self.selected_items[i]].draw()
         elif self.state == 'play':
             # draw HUD
             pygame.draw.rect(self.window, self.theme['hud bg color'], (0, 0, self.width, self.canvasdim[1]))
+            self.score_text.change_text("Score: " + str(self.score))
+            self.score_text.draw()
+            self.highscore_text.change_text("Highscore: " + str(self.highscore))
+            self.highscore_text.draw()
 
             for item in self.items:
                 item.draw(self.window)
@@ -188,13 +194,11 @@ class Game:
             if keys[pygame.K_LEFT]:
                 if self.state == 'menu':
                     self.selected_items[self.selected_header] = self.selected_items[self.selected_header] + 1 if self.selected_items[self.selected_header] < len(self.menu_items[self.selected_header])-1 else 0
-                    print(self.selected_items[self.selected_header])
                 if self.state == 'play':
                     self.players[0].move((-1,0))
             if keys[pygame.K_RIGHT]:
                 if self.state == 'menu':
                     self.selected_items[self.selected_header] = self.selected_items[self.selected_header] - 1 if self.selected_items[self.selected_header] > 0 else len(self.menu_items[self.selected_header])-1
-                    print(self.selected_items[self.selected_header])
                 if self.state == 'play':
                     self.players[0].move((1,0))
             if keys[pygame.K_UP]:
@@ -245,6 +249,9 @@ class Game:
                     item.transport(())
                     if isinstance(item, Food):
                         player.add_block()
+                        self.score += 10 * self.speed
+                        if self.score > self.highscore:
+                            self.highscore = self.score
 
             player.update()
         pygame.display.update()
@@ -279,6 +286,8 @@ class Game:
         for i in range(self.num_foods):
             food = Food((), self.theme['food color'], self.canvasdim)
             self.items.append(food)
+        self.highscore_text = TextBox("Highscore: " + str(self.highscore), self.theme['font'], 50, (0,0,0), ('margin-right-center', 5), self.window)
+        self.score_text = TextBox("Score: " + str(self.score), self.theme['font'], 50, (0,0,0), ('margin-right-center', 50), self.window)
 
     def pause(self):
         self.state = 'pause'
@@ -289,6 +298,7 @@ class Game:
     def gameover(self):
         self.state = 'gameover'
         self.window.fill(self.theme['gameover bg'])
+        self.score = 0
 
 # Global Constants
 BLOCK_SIZE = 20
