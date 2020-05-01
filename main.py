@@ -183,7 +183,10 @@ class Game:
         elif self.state == 'pause':
             pass
         elif self.state == 'gameover':
-            pass
+            self.gameover_text.draw()
+            self.finalscore_text.draw()
+            self.gameover_press_space_text.draw()
+            self.gameover_press_M_text.draw()
 
     def update(self):
         for event in pygame.event.get():
@@ -191,22 +194,22 @@ class Game:
                 pygame.quit()
         keys = pygame.key.get_pressed()
         for key in keys:
-            if keys[pygame.K_LEFT]:
+            if keys[pygame.K_a]:
                 if self.state == 'menu':
                     self.selected_items[self.selected_header] = self.selected_items[self.selected_header] + 1 if self.selected_items[self.selected_header] < len(self.menu_items[self.selected_header])-1 else 0
                 if self.state == 'play':
                     self.players[0].move((-1,0))
-            if keys[pygame.K_RIGHT]:
+            if keys[pygame.K_d]:
                 if self.state == 'menu':
                     self.selected_items[self.selected_header] = self.selected_items[self.selected_header] - 1 if self.selected_items[self.selected_header] > 0 else len(self.menu_items[self.selected_header])-1
                 if self.state == 'play':
                     self.players[0].move((1,0))
-            if keys[pygame.K_UP]:
+            if keys[pygame.K_w]:
                 if self.state == 'menu':
                     self.selected_header = self.selected_header - 1 if self.selected_header > 0 else len(self.headings)-1
                 if self.state == 'play':
                     self.players[0].move((0,-1))
-            if keys[pygame.K_DOWN]:
+            if keys[pygame.K_s]:
                 if self.state == 'menu':
                     self.selected_header = self.selected_header + 1 if self.selected_header < len(self.headings)-1 else 0
                 if self.state == 'play':
@@ -238,20 +241,24 @@ class Game:
                     self.resume()
                 if self.state == 'gameover':
                     self.play()
+            if keys[pygame.K_m]:
+                if self.state == 'gameover':
+                    self.menu()
 
-        for player in self.players:
-            if player.head.posx < self.canvasdim[0] or player.head.posx > self.canvasdim[2] or player.head.posy < self.canvasdim[1] or player.head.posy > self.canvasdim[3]:
-                self.gameover()
-            if player.body_collision():
-                self.gameover()
-            for item in self.items:
-                if player.distance(item) < BLOCK_SIZE:
-                    item.transport(())
-                    if isinstance(item, Food):
-                        player.add_block()
-                        self.score += 10 * self.speed
-                        if self.score > self.highscore:
-                            self.highscore = self.score
+        if self.state == 'play':
+            for player in self.players:
+                if player.head.posx < self.canvasdim[0] or player.head.posx > self.canvasdim[2] or player.head.posy < self.canvasdim[1] or player.head.posy > self.canvasdim[3]:
+                    self.gameover()
+                if player.body_collision():
+                    self.gameover()
+                for item in self.items:
+                    if player.distance(item) < BLOCK_SIZE:
+                        item.transport(())
+                        if isinstance(item, Food):
+                            player.add_block()
+                            self.score += int(10 * self.speed)
+                            if self.score > self.highscore:
+                                self.highscore = self.score
 
             player.update()
         pygame.display.update()
@@ -260,6 +267,7 @@ class Game:
         self.state = 'menu'
         self.selected_items = [0,1,0,0,0,1,0]
         self.selected_header = 0
+        self.menu_items = []
 
         title = TextBox(MENU_TEXT['title'], self.theme['font'], 150, self.theme['menu title color'], ('center', 10), self.window)
         self.headings = ['Mode', 'Speed', 'Wraparound', 'Power Ups', 'Obstacles', 'Num Food', 'Map']
@@ -292,12 +300,24 @@ class Game:
     def pause(self):
         self.state = 'pause'
 
+
+
     def resume(self):
         self.state = 'play'
 
     def gameover(self):
         self.state = 'gameover'
         self.window.fill(self.theme['gameover bg'])
+        print(self.score)
+        self.gameover_text = TextBox("Game Over", self.theme['font'], 150, (255,255,255), ('center', self.height/2 - 75), self.window)
+        self.finalscore_text = TextBox("Final Score: " + str(self.score), self.theme['font'], 50, (255,255,255), ('center', self.height/2 + 75), self.window)
+        self.gameover_press_space_text = TextBox("Press SPACE to play again", self.theme['font'], 40, (255,255,255), ('center', self.height/2 + 180), self.window)
+        self.gameover_press_M_text = TextBox("Press M for Menu", self.theme['font'], 40, (255,255,255), ('center', self.height/2 + 225), self.window)
+        self.gameover_text.draw()
+        self.finalscore_text.draw()
+        self.gameover_press_space_text.draw()
+        self.gameover_press_M_text.draw()
+
         self.score = 0
 
 # Global Constants
