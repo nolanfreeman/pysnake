@@ -181,7 +181,9 @@ class Game:
             for player in self.players:
                 player.draw(self.window)
         elif self.state == 'pause':
-            pass
+            self.paused_press_space_text.draw()
+            self.paused_press_M_text.draw()
+            self.paused_text.draw()
         elif self.state == 'gameover':
             self.gameover_text.draw()
             self.finalscore_text.draw()
@@ -235,20 +237,36 @@ class Game:
                     self.window = pygame.display.set_mode((self.width, self.height))
                     self.canvasdim = (0, HUD_HEIGHT, self.width, self.height)
                     self.play()
-                if self.state == 'play':
+                elif self.state == 'play':
                     self.pause()
-                if self.state == 'pause':
+                elif self.state == 'pause':
                     self.resume()
-                if self.state == 'gameover':
+                elif self.state == 'gameover':
                     self.play()
             if keys[pygame.K_m]:
-                if self.state == 'gameover':
+                if self.state != 'menu':
                     self.menu()
 
         if self.state == 'play':
             for player in self.players:
-                if player.head.posx < self.canvasdim[0] or player.head.posx > self.canvasdim[2] or player.head.posy < self.canvasdim[1] or player.head.posy > self.canvasdim[3]:
-                    self.gameover()
+                player.update()
+                if player.head.posx < self.canvasdim[0] or player.head.posx > self.canvasdim[2] or player.head.posy < self.canvasdim[1] or player.head.posy >= self.canvasdim[3]:
+                    if self.wraparound_on:
+                        if player.head.posx >= self.canvasdim[2]:
+                            player.head.posx = self.canvasdim[0]
+                        elif player.head.posx < self.canvasdim[0]:
+                            player.head.posx = self.canvasdim[2] - BLOCK_SIZE
+                        else:
+                            player.head.posx %= self.canvasdim[2]
+
+                        if player.head.posy >= self.canvasdim[3]:
+                            player.head.posy = self.canvasdim[1]
+                        elif player.head.posy < self.canvasdim[1]:
+                            player.head.posy = self.canvasdim[3] - BLOCK_SIZE
+                        else:
+                            player.head.posy %= self.canvasdim[3]
+                    else:
+                        self.gameover()
                 if player.body_collision():
                     self.gameover()
                 for item in self.items:
@@ -260,7 +278,6 @@ class Game:
                             if self.score > self.highscore:
                                 self.highscore = self.score
 
-            player.update()
         pygame.display.update()
 
     def menu(self):
@@ -270,6 +287,7 @@ class Game:
         self.menu_items = []
 
         title = TextBox(MENU_TEXT['title'], self.theme['font'], 150, self.theme['menu title color'], ('center', 10), self.window)
+        space_to_begin = TextBox('Press SPACE to Begin', self.theme['font'], 40, self.theme['menu title color'], (210, 120), self.window)
         self.headings = ['Mode', 'Speed', 'Wraparound', 'Power Ups', 'Obstacles', 'Num Food', 'Map']
         ypos = 10+150+10
         for heading_i, heading in enumerate(self.headings):
@@ -284,6 +302,7 @@ class Game:
             ypos += 75
 
         self.menu_headers.append(title)
+        self.menu_headers.append(space_to_begin)
 
     def play(self):
         self.players = []
@@ -299,8 +318,12 @@ class Game:
 
     def pause(self):
         self.state = 'pause'
-
-
+        self.paused_text = TextBox("Paused", self.theme['font'], 150, (255,255,255), ('center', self.height/2 - 75), self.window)
+        self.paused_press_space_text = TextBox("Press SPACE to resume", self.theme['font'], 40, (255,255,255), ('center', self.height/2 + 180), self.window)
+        self.paused_press_M_text = TextBox("Press M for Menu", self.theme['font'], 40, (255,255,255), ('center', self.height/2 + 225), self.window)
+        self.paused_text.draw()
+        self.paused_press_space_text.draw()
+        self.paused_press_M_text.draw()
 
     def resume(self):
         self.state = 'play'
@@ -323,7 +346,7 @@ class Game:
 # Global Constants
 BLOCK_SIZE = 20
 HUD_HEIGHT = 100
-THEMES = {'default': {'font': 'Retro.ttf', 'player color': (0,0,0), 'food color': (255,0,0), 'menu title color': (0,0,0), 'menu bg': (100,100,100), 'play bg': (0,0,255), 'gameover bg': (0,0,0), 'hud bg color': (0,0,150), 'menu item selected': (255,255,255)}}
+THEMES = {'default': {'font': 'Retro.ttf', 'player color': (0,0,0), 'food color': (255,0,0), 'menu title color': (0,0,0), 'menu bg': (100,100,100), 'play bg': (0,0,255), 'pause bg': (100,100,255), 'gameover bg': (0,0,0), 'hud bg color': (0,0,150), 'menu item selected': (255,255,255)}}
 STATES = ['menu', 'play', 'paused', 'gameover']
 
 MENU_TEXT = {'title': 'PySnake', 'Mode': ['Normal', 'Team', 'Battle', 'Zone'], 'Speed': ['0.5x', '1x', '1.5x', '2x'], 'Wraparound': ['off', 'on'], 'Power Ups': ['off', 'on'], 'Obstacles': ['off', 'on'], 'Num Food': ['1', '2', '3'], 'Map': ['1', '2', '3', '4']}
