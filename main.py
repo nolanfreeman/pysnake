@@ -139,6 +139,7 @@ class Game:
         self.num_foods = 1
         self.speed = 1
 
+        self.selected_items = [0,1,0,0,0,1,0]
         self.players = []
         self.items = []
         self.obstacles = []
@@ -178,6 +179,8 @@ class Game:
 
             for item in self.items:
                 item.draw(self.window)
+            for obstacle in self.obstacles:
+                obstacle.draw(self.window)
             for player in self.players:
                 player.draw(self.window)
         elif self.state == 'pause':
@@ -249,6 +252,10 @@ class Game:
 
         if self.state == 'play':
             for player in self.players:
+                for obstacle in self.obstacles:
+                    obstacle.update()
+                    if player.distance(obstacle) < BLOCK_SIZE:
+                        self.gameover()
                 player.update()
                 if player.head.posx < self.canvasdim[0] or player.head.posx > self.canvasdim[2] or player.head.posy < self.canvasdim[1] or player.head.posy >= self.canvasdim[3]:
                     if self.wraparound_on:
@@ -282,7 +289,6 @@ class Game:
 
     def menu(self):
         self.state = 'menu'
-        self.selected_items = [0,1,0,0,0,1,0]
         self.selected_header = 0
         self.menu_items = []
 
@@ -315,6 +321,10 @@ class Game:
             self.items.append(food)
         self.highscore_text = TextBox("Highscore: " + str(self.highscore), self.theme['font'], 50, (0,0,0), ('margin-right-center', 5), self.window)
         self.score_text = TextBox("Score: " + str(self.score), self.theme['font'], 50, (0,0,0), ('margin-right-center', 50), self.window)
+        if self.obstacles_on:
+            for i in range(random.randint(1, 4)):
+                new_obstacle = Block((), self.theme['obstacle color'], self.canvasdim)
+                self.obstacles.append(new_obstacle)
 
     def pause(self):
         self.state = 'pause'
@@ -342,11 +352,12 @@ class Game:
         self.gameover_press_M_text.draw()
 
         self.score = 0
+        self.obstacles = []
 
 # Global Constants
 BLOCK_SIZE = 20
 HUD_HEIGHT = 100
-THEMES = {'default': {'font': 'Retro.ttf', 'player color': (0,0,0), 'food color': (255,0,0), 'menu title color': (0,0,0), 'menu bg': (100,100,100), 'play bg': (0,0,255), 'pause bg': (100,100,255), 'gameover bg': (0,0,0), 'hud bg color': (0,0,150), 'menu item selected': (255,255,255)}}
+THEMES = {'default': {'font': 'Retro.ttf', 'player color': (0,0,0), 'food color': (255,0,0), 'menu title color': (0,0,0), 'obstacle color': (125,125,125), 'menu bg': (100,100,100), 'play bg': (0,0,255), 'pause bg': (100,100,255), 'gameover bg': (0,0,0), 'hud bg color': (0,0,150), 'menu item selected': (255,255,255)}}
 STATES = ['menu', 'play', 'paused', 'gameover']
 
 MENU_TEXT = {'title': 'PySnake', 'Mode': ['Normal', 'Team', 'Battle', 'Zone'], 'Speed': ['0.5x', '1x', '1.5x', '2x'], 'Wraparound': ['off', 'on'], 'Power Ups': ['off', 'on'], 'Obstacles': ['off', 'on'], 'Num Food': ['1', '2', '3'], 'Map': ['1', '2', '3', '4']}
