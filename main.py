@@ -450,7 +450,7 @@ class Game:
         self.powerup_inventory_array = [None, None, None, None]
         self.powerups_container_array = []
         for i in range(4):
-            new_powerup_container = Block((20*i*2*1.1 +5,50), (100,100,100), self.canvasdim, customwh=(BLOCK_SIZE*2, BLOCK_SIZE*2))
+            new_powerup_container = Block((20*i*2*1.1 +5,50), (44, 62, 80), self.canvasdim, customwh=(BLOCK_SIZE*2, BLOCK_SIZE*2))
             self.powerups_container_array.append(new_powerup_container)
 
         if self.obstacles_on:
@@ -505,7 +505,7 @@ class Game:
 # Global Constants
 BLOCK_SIZE = 20
 HUD_HEIGHT = 100
-THEMES = {'default': {'font': 'Retro.ttf', 'player color': (0,0,0), 'food color': (255,0,0), 'menu title color': (0,0,0), 'obstacle color': (125,125,125), 'magnet powerup color': (100,100, 255), 'passthrough powerup color': (100,255,100), 'del_body powerup color': (255,100,100), 'wraparound powerup color': (255,255,100), 'menu bg': (100,100,100), 'play bg': (0,0,255), 'pause bg': (100,100,255), 'gameover bg': (0,0,0), 'hud bg color': (0,0,150), 'menu item selected': (255,255,255)}}
+THEMES = {'default': {'font': 'Retro.ttf', 'player color': (26, 188, 156), 'food color': (192, 57, 43), 'menu title color': (44, 62, 80), 'obstacle color': (127, 140, 141), 'magnet powerup color': (230, 126, 34), 'passthrough powerup color': (155, 89, 182), 'del_body powerup color': (41, 128, 185), 'wraparound powerup color': (241, 196, 15), 'menu bg': (39, 174, 96), 'play bg': (44, 62, 80), 'pause bg': (41, 128, 185), 'gameover bg': (30, 39, 46), 'hud bg color': (52, 73, 94), 'menu item selected': (236, 240, 241)}}
 STATES = ['menu', 'play', 'paused', 'gameover']
 
 MENU_TEXT = {'title': 'PySnake', 'Mode': ['Normal', 'Team', 'Battle', 'Zone'], 'Speed': ['0.5x', '1x', '1.5x', '2x'], 'Wraparound': ['off', 'on'], 'Power Ups': ['off', 'on'], 'Obstacles': ['off', 'on'], 'Num Food': ['1', '2', '3'], 'Map': ['1', '2', '3', '4']}
